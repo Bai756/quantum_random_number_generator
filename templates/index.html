@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quantum Random Number Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Quantum Random Number Generator</h1>
+        <p>Generate truly random numbers using quantum computing!</p>
+        
+        <div class="input-group">
+            <input type="number" id="upperBound" 
+                   placeholder="Enter upper bound (optional)" 
+                   min="1" 
+                   max="1000000">
+            <span class="limit-text">Maximum: 1,000,000</span>
+            <br>
+            <button id="generateBtn">Generate Random Number</button>
+        </div>
+        
+        <div class="loading" id="loading">Generating...</div>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const upperBoundInput = document.getElementById('upperBound').value.trim();
+            const resultElement = document.getElementById('result');
+            const loadingElement = document.getElementById('loading');
+            
+            resultElement.textContent = '';
+            loadingElement.style.display = 'block';
+            
+            let upperBound = upperBoundInput === '' ? null : parseInt(upperBoundInput);
+            
+            if (upperBound !== null && (upperBound <= 0 || upperBound > 1000000)) {
+                resultElement.textContent = 'Error: Upper bound must be between 1 and 1,000,000';
+                loadingElement.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ upperBound })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultElement.textContent = data.number;
+                } else {
+                    resultElement.textContent = 'Error: ' + data.error;
+                }
+            } catch (error) {
+                resultElement.textContent = 'Error: ' + error.message;
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
